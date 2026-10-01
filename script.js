@@ -291,10 +291,13 @@ function render() {
     for (var c = 0; c < 7; c++) {
         var colEl = document.querySelector('.column[data-col="' + c + '"]');
         colEl.innerHTML = '';
+        // На мобильных карты меньше → смещение между ними тоже меньше
+        var cardW = colEl.offsetWidth || 80;
+        var step = cardW < 60 ? Math.round(cardW * 0.3) : 26;
         for (var k = 0; k < tableau[c].length; k++) {
             var card = tableau[c][k];
             var el = makeCardEl(card);
-            el.style.top = (k * 26) + 'px';
+            el.style.top = (k * step) + 'px';
             el.style.zIndex = k + 1;
             colEl.appendChild(el);
         }
