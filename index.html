@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Косынка</title>
+<script src="https://yandex.ru/games/sdk/v2"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== ЭКРАН ЗАГРУЗКИ ===== -->
+<div id="loading-screen">
+    <div class="loading-content">
+        <img src="logo.png" alt="Косынка" class="logo-img loading-logo-img">
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+        <div class="loading-text" id="loading-text">Загрузка...</div>
+    </div>
+</div>
+
+<!-- ===== ГЛАВНОЕ МЕНЮ ===== -->
+<div id="menu-screen" style="display: none;">
+    <div class="menu-content">
+        <img src="logo.png" alt="Косынка" class="logo-img menu-logo-img">
+        <div class="diff-panel">
+            <div class="diff-title">Выбор сложности</div>
+            <div class="diff-selector">
+                <button class="diff-btn active" data-diff="easy">Лёгкий</button>
+                <button class="diff-btn" data-diff="medium">Средний</button>
+                <button class="diff-btn" data-diff="hard">Сложный</button>
+                <button class="diff-btn" data-diff="impossible">Невозможный</button>
+            </div>
+        </div>
+        <button class="menu-btn" id="play-btn">Играть</button>
+        <button class="menu-btn menu-btn-secondary" id="howto-btn">Как играть</button>
+    </div>
+
+    <!-- Плашка с правилами выбранной сложности (правый угол меню) -->
+    <div id="menu-rules-plate" class="rules-plate menu-plate" style="display: none;">
+        <div class="rules-plate-title" id="menu-rules-title"></div>
+        <ul class="rules-plate-list" id="menu-rules-list"></ul>
+    </div>
+</div>
+
+<!-- ===== МОДАЛЬНОЕ ОКНО "КАК ИГРАТЬ" ===== -->
+<div id="howto-modal" style="display: none;">
+    <div class="modal-content">
+        <h2>Как играть</h2>
+        <div class="rules">
+            <p><b>Цель:</b> Собрать все карты в 4 базы (справа сверху) по мастям от туза до короля.</p>
+            <p><b>Правила:</b></p>
+            <ul>
+                <li>На столбцы карты кладутся по убыванию, чередуя цвета (красная на чёрную и наоборот).</li>
+                <li>На пустой столбец можно положить только короля.</li>
+                <li>На базы карты кладутся по возрастанию одной масти (туз, 2, 3... король).</li>
+                <li>Клик по колоде слева открывает новые карты (1 или 3 — зависит от сложности).</li>
+                <li>Перетаскивайте карты зажатой кнопкой мыши.</li>
+            </ul>
+        </div>
+        <button class="menu-btn" id="close-howto">Понятно</button>
+    </div>
+</div>
+
+<!-- ===== ИГРОВОЙ ЭКРАН ===== -->
+<div id="game-screen" style="display: none;">
+    <!-- Плашка с правилами текущего уровня (левый верхний угол) -->
+    <div id="game-rules-plate" class="rules-plate game-plate">
+        <div class="rules-plate-title" id="game-rules-title"></div>
+        <ul class="rules-plate-list" id="game-rules-list"></ul>
+    </div>
+    <div id="error-banner"></div>
+
+    <div id="ui">
+        <span id="timer-box" style="display: none;">Время: <b id="timer">5:00</b></span>
+        <span>Ходов: <b id="moves">0</b></span>
+        <button id="hint-btn">Подсказка</button>
+        <button id="new-game-btn">Новая игра</button>
+        <button id="menu-btn">Меню</button>
+    </div>
+
+    <div id="game">
+        <div id="top-row">
+            <div id="stock" class="slot"></div>
+            <div id="waste" class="slot"></div>
+            <div id="foundations">
+                <div class="slot foundation" data-f="0"></div>
+                <div class="slot foundation" data-f="1"></div>
+                <div class="slot foundation" data-f="2"></div>
+                <div class="slot foundation" data-f="3"></div>
+            </div>
+        </div>
+        <div id="tableau">
+            <div class="column" data-col="0"></div>
+            <div class="column" data-col="1"></div>
+            <div class="column" data-col="2"></div>
+            <div class="column" data-col="3"></div>
+            <div class="column" data-col="4"></div>
+            <div class="column" data-col="5"></div>
+            <div class="column" data-col="6"></div>
+        </div>
+    </div>
+
+    <div id="win">
+        <h1>🎉 Победа!</h1>
+        <button id="again-btn">Играть снова</button>
+        <button id="win-menu-btn" class="menu-btn-secondary">В меню</button>
+    </div>
+
+    <div id="lose-screen">
+        <h1>⏳ Время вышло!</h1>
+        <p class="lose-text">Ты не успел собрать пасьянс за отведённое время.</p>
+        <button id="retry-btn" class="menu-btn">Попробовать снова</button>
+        <button id="lose-menu-btn" class="menu-btn menu-btn-secondary">В меню</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
