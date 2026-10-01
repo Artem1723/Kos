@@ -386,67 +386,112 @@ body::before {
 }
 .lose-text { color: rgba(243,231,214,.75); margin-bottom: 30px; font-size: 16px; }
 /* =========================================================
-   МОБИЛЬНАЯ АДАПТАЦИЯ
+   МОБИЛЬНАЯ АДАПТАЦИЯ (полная переработка)
    ========================================================= */
 
-/* Масштабируем всё игровое поле под ширину экрана.
-   Переменная --game-scale задаётся из JS. */
-#game {
-    transform: scale(var(--game-scale, 1));
-    transform-origin: top center;
+/* Базовая переменная для расчёта размеров карт */
+:root {
+    --card-w: 80px;
+    --card-h: 112px;
+    --gap: 14px;
 }
 
-/* На телефонах: крупнее кнопки, компактнее плашки */
 @media (max-width: 820px) {
-    #ui {
-        top: auto; bottom: 12px; right: 50%;
-        transform: translateX(50%);
-        gap: 8px; padding: 8px 12px;
-        font-size: 13px;
+    /* Пересчитываем размеры карт под ширину экрана */
+    :root {
+        --card-w: calc((100vw - 16px - 6 * 4px) / 7);
+        --card-h: calc(var(--card-w) * 1.4);
+        --gap: 4px;
     }
-    #ui button { padding: 10px 14px; font-size: 13px; }
 
-    /* Плашка правил: меньше и полупрозрачнее, чтобы не мешала */
-    /* Плашка правил: уходит ВНИЗ под игровое поле, чтобы не перекрывать колоду */
+    body { overflow-x: hidden; overflow-y: auto; }
+
+    /* Игровое поле на всю ширину */
+    #game {
+        max-width: 100%;
+        padding: 56px 8px 160px;
+        transform: none !important; /* убираем старое масштабирование */
+    }
+
+    #top-row { gap: var(--gap); margin-bottom: 16px; flex-wrap: nowrap; }
+    #foundations { gap: var(--gap); margin-left: auto; }
+
+    .slot, .card, .column {
+        width: var(--card-w);
+        height: var(--card-h);
+    }
+    .column { min-height: calc(var(--card-h) * 4); }
+
+    /* Слоты и карты масштабируются */
+    .slot.empty::after { font-size: calc(var(--card-w) * 0.4); }
+    .foundation::after { font-size: calc(var(--card-w) * 0.42); }
+
+    /* Углы и масти на картах */
+    .corner { font-size: calc(var(--card-w) * 0.19); }
+    .corner.top { top: calc(var(--card-w) * 0.06); left: calc(var(--card-w) * 0.07); }
+    .corner.bottom { bottom: calc(var(--card-w) * 0.06); right: calc(var(--card-w) * 0.07); }
+    .middle { font-size: calc(var(--card-w) * 0.5); }
+    .face-art { width: calc(var(--card-w) * 0.78); height: calc(var(--card-w) * 0.78); }
+    .card.face-down::after {
+        top: calc(var(--card-w) * 0.07); left: calc(var(--card-w) * 0.07);
+        right: calc(var(--card-w) * 0.07); bottom: calc(var(--card-w) * 0.07);
+        font-size: calc(var(--card-w) * 0.28);
+        border-radius: calc(var(--card-w) * 0.09);
+    }
+
+    /* Столбцы */
+    #tableau { gap: var(--gap); justify-content: center; }
+
+    /* Смещение карт в столбцах задаётся из JS, но базовый отступ меньше */
+
+    /* Панель кнопок внизу по центру */
+    #ui {
+        top: auto; bottom: 10px; right: 50%;
+        transform: translateX(50%);
+        gap: 6px; padding: 6px 10px;
+        font-size: 12px; white-space: nowrap;
+    }
+    #ui button { padding: 8px 12px; font-size: 12px; }
+
+    /* Плашка правил: внизу над кнопками, по центру */
     .game-plate {
         position: fixed;
-        top: auto;
-        bottom: 70px;          /* выше нижней панели кнопок */
-        left: 50%;
-        transform: translateX(-50%);
-        max-width: 300px;
-        width: calc(100% - 20px);
-        padding: 10px 14px;
-        opacity: .95;
+        top: auto; bottom: 56px;
+        left: 50%; transform: translateX(-50%);
+        max-width: calc(100vw - 20px);
+        width: auto;
+        padding: 8px 12px;
         z-index: 400;
     }
-        /* Сдвигаем игровое поле вверх, чтобы внизу было место под плашку правил */
-    #game {
-        padding-bottom: 140px;
-    }
-    .rules-plate-title { font-size: 12px; margin-bottom: 5px; }
-    .rules-plate-list li { font-size: 11px; line-height: 1.4; margin-bottom: 3px; }
+    .rules-plate-title { font-size: 11px; margin-bottom: 4px; }
+    .rules-plate-list li { font-size: 10px; line-height: 1.35; margin-bottom: 2px; }
 
-    /* Меню: плашка правил уходит вниз под кнопки */
+    /* Меню на мобильных */
+    #menu-screen { overflow-y: auto; padding: 20px 10px; align-items: flex-start; }
+    .menu-content { width: 100%; }
+    .menu-logo-img { width: min(300px, 70vw); margin-bottom: 16px; }
+    .diff-panel { padding: 14px 16px; margin-bottom: 20px; }
+    .diff-btn { padding: 10px 14px; font-size: 13px; }
+    .menu-btn { width: min(220px, 80vw); font-size: 16px; }
     .menu-plate {
-        position: static;
-        margin: 20px auto 0;
-        max-width: 320px;
+        position: static; margin: 16px auto 0;
+        max-width: min(320px, 90vw);
         animation: none;
     }
-    #menu-screen { overflow-y: auto; padding: 20px; align-items: flex-start; }
-    .menu-content { width: 100%; }
-    .menu-logo-img { width: 300px; }
-    .diff-btn { padding: 10px 14px; font-size: 13px; }
-    .menu-btn { width: 220px; font-size: 16px; }
 
     /* Экраны победы/поражения */
-    #win h1 { font-size: 40px; }
-    #lose-screen h1 { font-size: 36px; }
+    #win h1 { font-size: 36px; }
+    #lose-screen h1 { font-size: 32px; }
+    .loading-logo-img { width: min(280px, 70vw); }
 }
 
-/* Совсем маленькие экраны */
-@media (max-width: 420px) {
-    .menu-logo-img { width: 240px; }
-    .game-plate { max-width: 150px; }
+/* Совсем маленькие экраны (iPhone SE, старые Android) */
+@media (max-width: 380px) {
+    :root {
+        --gap: 2px;
+    }
+    #game { padding: 50px 4px 150px; }
+    .menu-logo-img { width: min(220px, 65vw); }
+    #ui { gap: 4px; padding: 5px 8px; font-size: 11px; }
+    #ui button { padding: 7px 10px; font-size: 11px; }
 }
