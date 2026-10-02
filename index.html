@@ -34,10 +34,10 @@
             </div>
         </div>
         <button class="menu-btn" id="play-btn">Играть</button>
+        <button class="menu-btn menu-btn-secondary" id="settings-btn">Настройки</button>
         <button class="menu-btn menu-btn-secondary" id="howto-btn">Как играть</button>
     </div>
 
-    <!-- Плашка с правилами выбранной сложности (правый угол меню) -->
     <div id="menu-rules-plate" class="rules-plate menu-plate" style="display: none;">
         <div class="rules-plate-title" id="menu-rules-title"></div>
         <ul class="rules-plate-list" id="menu-rules-list"></ul>
@@ -57,27 +57,94 @@
                 <li>На базы карты кладутся по возрастанию одной масти (туз, 2, 3... король).</li>
                 <li>Клик по колоде слева открывает новые карты (1 или 3 — зависит от сложности).</li>
                 <li>Перетаскивайте карты зажатой кнопкой мыши.</li>
+                <li>Двойной клик по карте — авто-перемещение в доступный слот.</li>
             </ul>
         </div>
         <button class="menu-btn" id="close-howto">Понятно</button>
     </div>
 </div>
 
+<!-- ===== МОДАЛЬНОЕ ОКНО "НАСТРОЙКИ" ===== -->
+<div id="settings-modal" style="display: none;">
+    <div class="modal-content settings-content">
+        <div class="settings-header">
+            <h2>Настройки</h2>
+            <button class="settings-close" id="close-settings">✕</button>
+        </div>
+
+        <div class="settings-section">
+            <label class="settings-toggle">
+                <input type="checkbox" id="setting-sound" checked>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Звук</span>
+            </label>
+            <label class="settings-toggle">
+                <input type="checkbox" id="setting-tap-move" checked>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Перемещение одним нажатием</span>
+            </label>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-subtitle">Рубашка карт</div>
+            <div class="card-backs-grid">
+                <div class="card-back-option active" data-back="onyx">
+                    <div class="card-back-preview back-onyx"></div>
+                    <span>Оникс</span>
+                </div>
+                <div class="card-back-option" data-back="emerald">
+                    <div class="card-back-preview back-emerald"></div>
+                    <span>Изумруд</span>
+                </div>
+                <div class="card-back-option" data-back="ruby">
+                    <div class="card-back-preview back-ruby"></div>
+                    <span>Рубин</span>
+                </div>
+                <div class="card-back-option" data-back="sapphire">
+                    <div class="card-back-preview back-sapphire"></div>
+                    <span>Сапфир</span>
+                </div>
+                <div class="card-back-option" data-back="amber">
+                    <div class="card-back-preview back-amber"></div>
+                    <span>Янтарь</span>
+                </div>
+                <div class="card-back-option" data-back="obsidian">
+                    <div class="card-back-preview back-obsidian"></div>
+                    <span>Обсидиан</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ===== ИГРОВОЙ ЭКРАН ===== -->
 <div id="game-screen" style="display: none;">
-    <!-- Плашка с правилами текущего уровня (левый верхний угол) -->
     <div id="game-rules-plate" class="rules-plate game-plate">
         <div class="rules-plate-title" id="game-rules-title"></div>
         <ul class="rules-plate-list" id="game-rules-list"></ul>
     </div>
     <div id="error-banner"></div>
 
+    <div id="zoom-controls">
+        <button class="zoom-btn" id="zoom-out" title="Уменьшить">🔍−</button>
+        <button class="zoom-btn" id="zoom-in" title="Увеличить">🔍+</button>
+    </div>
+
     <div id="ui">
-        <span id="timer-box" style="display: none;">Время: <b id="timer">5:00</b></span>
-        <span>Ходов: <b id="moves">0</b></span>
-        <button id="hint-btn">Подсказка</button>
-        <button id="new-game-btn">Новая игра</button>
-        <button id="menu-btn">Меню</button>
+        <div class="ui-row">
+            <span class="ui-stat">Ходы: <b id="moves">0</b></span>
+            <span class="ui-stat" id="timer-box" style="display: none;">Таймер: <b id="timer">5:00</b></span>
+        </div>
+        <div class="ui-row">
+            <button id="hint-btn" class="ui-btn">Подсказка</button>
+            <button id="game-settings-btn" class="ui-btn ui-btn-icon">Настройки</button>
+        </div>
+        <div class="ui-row">
+            <button id="new-game-btn" class="ui-btn ui-btn-wide">Новая игра</button>
+        </div>
+        <div class="ui-row">
+            <button id="menu-btn" class="ui-btn ui-btn-wide ui-btn-secondary">Меню</button>
+        </div>
     </div>
 
     <div id="game">
@@ -116,6 +183,19 @@
     </div>
 </div>
 
+<!-- ===== МОДАЛЬНОЕ ОКНО "ПОДТВЕРЖДЕНИЕ НОВОЙ ИГРЫ" ===== -->
+<div id="confirm-modal" style="display: none;">
+    <div class="modal-content confirm-content">
+        <h2>Новая игра?</h2>
+        <p class="confirm-text">Текущий прогресс будет потерян. Вы точно хотите начать заново?</p>
+        <div class="confirm-buttons">
+            <button class="menu-btn" id="confirm-yes">Да, начать заново</button>
+            <button class="menu-btn menu-btn-secondary" id="confirm-no">Отмена</button>
+        </div>
+    </div>
+</div>
+
 <script src="script.js"></script>
+
 </body>
 </html>
