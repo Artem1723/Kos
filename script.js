@@ -14,8 +14,13 @@ var loadingBar = document.getElementById('loading-bar');
 var loadingText = document.getElementById('loading-text');
 var loadingScreen = document.getElementById('loading-screen');
 var menuScreen = document.getElementById('menu-screen');
+var difficultyScreen = document.getElementById('difficulty-screen');
 var gameScreen = document.getElementById('game-screen');
 var howtoModal = document.getElementById('howto-modal');
+
+function isMobile() {
+    return window.innerWidth <= 820;
+}
 
 function simulateLoading() {
     var progress = 0;
@@ -40,9 +45,27 @@ function showMenu() {
 }
 
 function startGame() {
-    menuScreen.style.display = 'none';
+    if (isMobile()) {
+        // На телефоне: сначала экран выбора сложности
+        menuScreen.style.display = 'none';
+        difficultyScreen.style.display = 'flex';
+    } else {
+        // На ПК: сразу в игру
+        menuScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+        newGame();
+    }
+}
+
+function startGameFromDifficulty() {
+    difficultyScreen.style.display = 'none';
     gameScreen.style.display = 'block';
     newGame();
+}
+
+function backToMenuFromDifficulty() {
+    difficultyScreen.style.display = 'none';
+    menuScreen.style.display = 'flex';
 }
 
 function showHowTo() { howtoModal.style.display = 'flex'; }
@@ -52,6 +75,7 @@ function backToMenu() {
     stopTimer();
     closeSettings();
     gameScreen.style.display = 'none';
+    difficultyScreen.style.display = 'none';
     document.getElementById('win').style.display = 'none';
     document.getElementById('lose-screen').style.display = 'none';
     menuScreen.style.display = 'flex';
@@ -62,6 +86,10 @@ document.getElementById('howto-btn').addEventListener('click', showHowTo);
 document.getElementById('close-howto').addEventListener('click', closeHowTo);
 document.getElementById('menu-btn').addEventListener('click', backToMenu);
 document.getElementById('win-menu-btn').addEventListener('click', backToMenu);
+
+// Кнопки экрана выбора сложности (мобильные)
+document.getElementById('start-game-btn').addEventListener('click', startGameFromDifficulty);
+document.getElementById('back-to-menu-btn').addEventListener('click', backToMenuFromDifficulty);
 
 simulateLoading();
 
@@ -169,11 +197,9 @@ function autoMoveCard(card) {
     var source = null;
     var col = -1;
 
-    // Из сброса
     if (waste.length && waste[waste.length - 1] === card) {
         source = 'waste';
     } else {
-        // Из столбца (только верхняя карта)
         for (var c = 0; c < 7; c++) {
             if (tableau[c].length && tableau[c][tableau[c].length - 1] === card) {
                 source = 'tableau';
@@ -183,7 +209,6 @@ function autoMoveCard(card) {
         }
     }
 
-    // Из базы (верхняя)
     if (!source) {
         for (var f = 0; f < 4; f++) {
             if (foundations[f].length && foundations[f][foundations[f].length - 1] === card) {
@@ -196,7 +221,6 @@ function autoMoveCard(card) {
 
     if (!source) return;
 
-    // 1. Пробуем на базу (приоритет)
     for (var i = 0; i < 4; i++) {
         var f = foundations[i];
         var ok = (f.length === 0) ? (card.value === 1)
@@ -219,7 +243,6 @@ function autoMoveCard(card) {
         }
     }
 
-    // 2. Пробуем на столбец
     for (var t = 0; t < 7; t++) {
         if (source === 'tableau' && t === col) continue;
         if (canPlaceTableau(card, tableau[t])) {
@@ -330,7 +353,6 @@ function makeCardEl(card) {
             faceArt(card) +
             '<div class="corner bottom">' + card.rank + '<br>' + card.suit + '</div>';
 
-        // Счётчик быстрых кликов + отложенное перетаскивание
         var lastTapTime = 0;
         var dragTimeout = null;
         var pendingEvent = null;
@@ -338,9 +360,7 @@ function makeCardEl(card) {
         el.addEventListener('pointerdown', function (e) {
             var now = Date.now();
 
-            // Если был быстрый повторный клик — авто-перемещение
             if (tapMoveEnabled && (now - lastTapTime) < 300) {
-                // Отменяем запланированное перетаскивание
                 if (dragTimeout) { clearTimeout(dragTimeout); dragTimeout = null; }
                 e.preventDefault();
                 e.stopPropagation();
@@ -352,8 +372,6 @@ function makeCardEl(card) {
             lastTapTime = now;
             pendingEvent = e;
 
-            // Откладываем перетаскивание на 200мс
-            // Если за это время будет второй клик — он отменит drag и сделает авто-ход
             dragTimeout = setTimeout(function () {
                 dragTimeout = null;
                 if (pendingEvent) {
@@ -363,8 +381,6 @@ function makeCardEl(card) {
             }, 200);
         });
 
-        // Если пользователь начал двигать мышь до истечения таймаута —
-        // начинаем перетаскивание немедленно (для отзывчивости)
         el.addEventListener('pointermove', function (e) {
             if (dragTimeout && pendingEvent) {
                 clearTimeout(dragTimeout);
@@ -674,12 +690,9 @@ function initListeners() {
             flashMessage('Проходы колоды закончились!');
         }
     });
-    // Кнопка "Новая игра" в панели — с подтверждением
     document.getElementById('new-game-btn').addEventListener('click', function () {
         showConfirmModal();
     });
-
-    // Кнопка "Играть снова" на экране победы — без подтверждения (игра уже закончена)
     document.getElementById('again-btn').addEventListener('click', newGame);
 }
 
@@ -844,15 +857,26 @@ function updateTimerDisplay() {
 }
 
 // =========================================================
-// ВЫБОР СЛОЖНОСТИ И КНОПКИ ПОРАЖЕНИЯ
+// ВЫБОР СЛОЖНОСТИ (ПК + мобильные, синхронизация)
 // =========================================================
 document.querySelectorAll('.diff-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
-        document.querySelectorAll('.diff-btn').forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        difficulty = btn.getAttribute('data-diff');
-        fillRulesPlate('menu-rules-title', 'menu-rules-list', difficulty);
-        document.getElementById('menu-rules-plate').style.display = 'block';
+        var selectedDiff = btn.getAttribute('data-diff');
+        difficulty = selectedDiff;
+
+        // Синхронизируем ВСЕ кнопки с таким же data-diff
+        document.querySelectorAll('.diff-btn').forEach(function (b) {
+            b.classList.toggle('active', b.getAttribute('data-diff') === selectedDiff);
+        });
+
+        // Показываем правила
+        if (!isMobile()) {
+            fillRulesPlate('menu-rules-title', 'menu-rules-list', difficulty);
+            document.getElementById('menu-rules-plate').style.display = 'block';
+        } else {
+            fillRulesPlate('mobile-rules-title', 'mobile-rules-list', difficulty);
+            document.getElementById('mobile-rules-plate').style.display = 'block';
+        }
     });
 });
 
@@ -915,7 +939,6 @@ document.getElementById('confirm-no').addEventListener('click', function () {
     hideConfirmModal();
 });
 
-// Закрытие по клику на фон
 confirmModal.addEventListener('click', function (e) {
     if (e.target === confirmModal) {
         hideConfirmModal();
