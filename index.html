@@ -24,7 +24,8 @@
 <div id="menu-screen" style="display: none;">
     <div class="menu-content">
         <img src="logo.png" alt="Косынка" class="logo-img menu-logo-img">
-        <div class="diff-panel">
+        <!-- На ПК: выбор сложности прямо в меню -->
+        <div class="diff-panel desktop-only">
             <div class="diff-title">Выбор сложности</div>
             <div class="diff-selector">
                 <button class="diff-btn active" data-diff="easy">Лёгкий</button>
@@ -33,14 +34,34 @@
                 <button class="diff-btn" data-diff="impossible">Невозможный</button>
             </div>
         </div>
+        <!-- На ПК: плашка правил справа -->
+        <div id="menu-rules-plate" class="rules-plate menu-plate desktop-only" style="display: none;">
+            <div class="rules-plate-title" id="menu-rules-title"></div>
+            <ul class="rules-plate-list" id="menu-rules-list"></ul>
+        </div>
         <button class="menu-btn" id="play-btn">Играть</button>
         <button class="menu-btn menu-btn-secondary" id="settings-btn">Настройки</button>
         <button class="menu-btn menu-btn-secondary" id="howto-btn">Как играть</button>
     </div>
+</div>
 
-    <div id="menu-rules-plate" class="rules-plate menu-plate" style="display: none;">
-        <div class="rules-plate-title" id="menu-rules-title"></div>
-        <ul class="rules-plate-list" id="menu-rules-list"></ul>
+<!-- ===== ЭКРАН ВЫБОРА СЛОЖНОСТИ (только мобильные) ===== -->
+<div id="difficulty-screen" style="display: none;">
+    <div class="menu-content">
+        <div class="diff-title" style="margin-bottom: 20px;">Выбор сложности</div>
+        <div class="diff-selector" style="margin-bottom: 24px;">
+            <button class="diff-btn diff-btn-mobile active" data-diff="easy">Лёгкий</button>
+            <button class="diff-btn diff-btn-mobile" data-diff="medium">Средний</button>
+            <button class="diff-btn diff-btn-mobile" data-diff="hard">Сложный</button>
+            <button class="diff-btn diff-btn-mobile" data-diff="impossible">Невозможный</button>
+        </div>
+        <!-- Плашка с правилами выбранного уровня -->
+        <div id="mobile-rules-plate" class="rules-plate mobile-rules-plate" style="display: none;">
+            <div class="rules-plate-title" id="mobile-rules-title"></div>
+            <ul class="rules-plate-list" id="mobile-rules-list"></ul>
+        </div>
+        <button class="menu-btn" id="start-game-btn" style="margin-top: 24px;">Начать игру</button>
+        <button class="menu-btn menu-btn-secondary" id="back-to-menu-btn">Назад</button>
     </div>
 </div>
 
