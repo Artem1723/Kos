@@ -8,7 +8,7 @@ window.addEventListener('error', function (e) {
 });
 
 // =========================================================
-// УПРАВЛЕНИЕ ЭКРАНАМИ (загрузка -> меню -> игра)
+// УПРАВЛЕНИЕ ЭКРАНАМИ
 // =========================================================
 var loadingBar = document.getElementById('loading-bar');
 var loadingText = document.getElementById('loading-text');
@@ -50,6 +50,7 @@ function closeHowTo() { howtoModal.style.display = 'none'; }
 
 function backToMenu() {
     stopTimer();
+    closeSettings();
     gameScreen.style.display = 'none';
     document.getElementById('win').style.display = 'none';
     document.getElementById('lose-screen').style.display = 'none';
@@ -82,10 +83,64 @@ var difficulty = 'easy';
 var DRAW_COUNT    = { easy: 1, medium: 3, hard: 3, impossible: 3 };
 var REDEALS       = { easy: 9999, medium: 9999, hard: 1, impossible: 0 };
 var HINTS_ALLOWED = { easy: true, medium: true, hard: true, impossible: false };
-var IMPOSSIBLE_TIME = 300; // сек: среднее время победы (~5 мин) = дедлайн
+var IMPOSSIBLE_TIME = 300;
 var redealsLeft = 9999;
 var timerInterval = null;
 var timeLeft = 0;
+
+// =========================================================
+// НАСТРОЙКИ
+// =========================================================
+var settingsModal = document.getElementById('settings-modal');
+var settingSound = document.getElementById('setting-sound');
+var settingTapMove = document.getElementById('setting-tap-move');
+var tapMoveEnabled = true;
+var currentCardBack = 'onyx';
+
+var CARD_BACKS = {
+    onyx: 'linear-gradient(145deg, #2a2d3a 0%, #1a1d28 100%)',
+    emerald: 'linear-gradient(145deg, #1a5c3a 0%, #0d3822 100%)',
+    ruby: 'linear-gradient(145deg, #5c1a2a 0%, #380d18 100%)',
+    sapphire: 'linear-gradient(145deg, #1a2a5c 0%, #0d1838 100%)',
+    amber: 'linear-gradient(145deg, #5c3a1a 0%, #38220d 100%)',
+    obsidian: 'linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%)'
+};
+
+var CARD_BACK_BORDERS = {
+    onyx: 'none',
+    emerald: 'none',
+    ruby: 'none',
+    sapphire: 'none',
+    amber: 'none',
+    obsidian: 'none'
+};
+
+function openSettings() { settingsModal.style.display = 'flex'; }
+function closeSettings() { settingsModal.style.display = 'none'; }
+
+function applyCardBack(backName) {
+    currentCardBack = backName;
+    document.querySelectorAll('.card-back-option').forEach(function (opt) {
+        opt.classList.toggle('active', opt.getAttribute('data-back') === backName);
+    });
+    if (gameScreen.style.display === 'block') {
+        render();
+    }
+}
+
+document.getElementById('settings-btn').addEventListener('click', openSettings);
+document.getElementById('game-settings-btn').addEventListener('click', openSettings);
+document.getElementById('close-settings').addEventListener('click', closeSettings);
+
+document.getElementById('setting-tap-move').addEventListener('change', function () {
+    tapMoveEnabled = this.checked;
+});
+
+document.querySelectorAll('.card-back-option').forEach(function (opt) {
+    opt.addEventListener('click', function () {
+        applyCardBack(opt.getAttribute('data-back'));
+    });
+});
 
 // Правила уровней для плашек
 var DIFF_RULES = {
@@ -104,6 +159,84 @@ function fillRulesPlate(titleId, listId, diff) {
         var li = document.createElement('li');
         li.textContent = info.rules[i];
         list.appendChild(li);
+    }
+}
+
+// =========================================================
+// АВТО-ПЕРЕМЕЩЕНИЕ КАРТЫ (двойной клик)
+// =========================================================
+function autoMoveCard(card) {
+    var source = null;
+    var col = -1;
+
+    // Из сброса
+    if (waste.length && waste[waste.length - 1] === card) {
+        source = 'waste';
+    } else {
+        // Из столбца (только верхняя карта)
+        for (var c = 0; c < 7; c++) {
+            if (tableau[c].length && tableau[c][tableau[c].length - 1] === card) {
+                source = 'tableau';
+                col = c;
+                break;
+            }
+        }
+    }
+
+    // Из базы (верхняя)
+    if (!source) {
+        for (var f = 0; f < 4; f++) {
+            if (foundations[f].length && foundations[f][foundations[f].length - 1] === card) {
+                source = 'foundation';
+                col = f;
+                break;
+            }
+        }
+    }
+
+    if (!source) return;
+
+    // 1. Пробуем на базу (приоритет)
+    for (var i = 0; i < 4; i++) {
+        var f = foundations[i];
+        var ok = (f.length === 0) ? (card.value === 1)
+            : (f[f.length - 1].suit === card.suit && f[f.length - 1].value === card.value - 1);
+        if (ok) {
+            if (source === 'waste') waste.pop();
+            else if (source === 'tableau') {
+                tableau[col].pop();
+                if (tableau[col].length && !tableau[col][tableau[col].length - 1].faceUp) {
+                    tableau[col][tableau[col].length - 1].faceUp = true;
+                }
+            } else if (source === 'foundation') {
+                foundations[col].pop();
+            }
+            f.push(card);
+            moves++;
+            render();
+            checkWin();
+            return;
+        }
+    }
+
+    // 2. Пробуем на столбец
+    for (var t = 0; t < 7; t++) {
+        if (source === 'tableau' && t === col) continue;
+        if (canPlaceTableau(card, tableau[t])) {
+            if (source === 'waste') waste.pop();
+            else if (source === 'tableau') {
+                tableau[col].pop();
+                if (tableau[col].length && !tableau[col][tableau[col].length - 1].faceUp) {
+                    tableau[col][tableau[col].length - 1].faceUp = true;
+                }
+            } else if (source === 'foundation') {
+                foundations[col].pop();
+            }
+            tableau[t].push(card);
+            moves++;
+            render();
+            return;
+        }
     }
 }
 
@@ -145,7 +278,6 @@ function newGame() {
     document.getElementById('win').style.display = 'none';
     document.getElementById('lose-screen').style.display = 'none';
 
-    // Настройки выбранной сложности
     redealsLeft = REDEALS[difficulty];
     fillRulesPlate('game-rules-title', 'game-rules-list', difficulty);
     document.getElementById('hint-btn').style.display = HINTS_ALLOWED[difficulty] ? '' : 'none';
@@ -178,8 +310,8 @@ function makeCardEl(card) {
 
     if (!card.faceUp) {
         el.classList.add('face-down');
-        el.style.background = 'radial-gradient(circle at 30% 20%, rgba(255,255,255,.10), transparent 46%), repeating-linear-gradient(45deg, rgba(227,199,154,.05) 0 1px, transparent 1px 9px), repeating-linear-gradient(-45deg, rgba(227,199,154,.05) 0 1px, transparent 1px 9px), linear-gradient(160deg, #2a2f45 0%, #1d2233 55%, #141826 100%)';
-        el.style.border = '1px solid rgba(227,199,154,.22)';
+        el.style.background = CARD_BACKS[currentCardBack];
+        el.style.border = CARD_BACK_BORDERS[currentCardBack];
         el.addEventListener('click', function (e) {
             for (var c = 0; c < 7; c++) {
                 var pile = tableau[c];
@@ -197,8 +329,49 @@ function makeCardEl(card) {
             '<div class="corner top">' + card.rank + '<br>' + card.suit + '</div>' +
             faceArt(card) +
             '<div class="corner bottom">' + card.rank + '<br>' + card.suit + '</div>';
+
+        // Счётчик быстрых кликов + отложенное перетаскивание
+        var lastTapTime = 0;
+        var dragTimeout = null;
+        var pendingEvent = null;
+
         el.addEventListener('pointerdown', function (e) {
-            startDrag(e, card);
+            var now = Date.now();
+
+            // Если был быстрый повторный клик — авто-перемещение
+            if (tapMoveEnabled && (now - lastTapTime) < 300) {
+                // Отменяем запланированное перетаскивание
+                if (dragTimeout) { clearTimeout(dragTimeout); dragTimeout = null; }
+                e.preventDefault();
+                e.stopPropagation();
+                lastTapTime = 0;
+                autoMoveCard(card);
+                return;
+            }
+
+            lastTapTime = now;
+            pendingEvent = e;
+
+            // Откладываем перетаскивание на 200мс
+            // Если за это время будет второй клик — он отменит drag и сделает авто-ход
+            dragTimeout = setTimeout(function () {
+                dragTimeout = null;
+                if (pendingEvent) {
+                    startDrag(pendingEvent, card);
+                    pendingEvent = null;
+                }
+            }, 200);
+        });
+
+        // Если пользователь начал двигать мышь до истечения таймаута —
+        // начинаем перетаскивание немедленно (для отзывчивости)
+        el.addEventListener('pointermove', function (e) {
+            if (dragTimeout && pendingEvent) {
+                clearTimeout(dragTimeout);
+                dragTimeout = null;
+                startDrag(pendingEvent, card);
+                pendingEvent = null;
+            }
         });
     }
 
@@ -270,7 +443,6 @@ function render() {
 
     var wasteEl = document.getElementById('waste');
     wasteEl.innerHTML = '';
-    // Показываем до 3 последних карт сброса со смещением (веер)
     var wasteShow = Math.min(waste.length, 3);
     for (var w = waste.length - wasteShow; w < waste.length; w++) {
         var wEl = makeCardEl(waste[w]);
@@ -291,9 +463,8 @@ function render() {
     for (var c = 0; c < 7; c++) {
         var colEl = document.querySelector('.column[data-col="' + c + '"]');
         colEl.innerHTML = '';
-        // На мобильных карты меньше → смещение между ними тоже меньше
-        var cardW = colEl.offsetWidth || 80;
-        var step = cardW < 60 ? Math.round(cardW * 0.3) : 26;
+        var cardW = colEl.offsetWidth || 90;
+        var step = cardW < 70 ? Math.round(cardW * 0.3) : 30;
         for (var k = 0; k < tableau[c].length; k++) {
             var card = tableau[c][k];
             var el = makeCardEl(card);
@@ -466,7 +637,7 @@ function tryMoveToFoundation(i) {
 }
 
 function canPlaceTableau(card, pile) {
-    if (pile.length === 0) return card.value === 13; // на пустой — только король
+    if (pile.length === 0) return card.value === 13;
     var top = pile[pile.length - 1];
     return top.faceUp && top.color !== card.color && top.value === card.value + 1;
 }
@@ -503,7 +674,12 @@ function initListeners() {
             flashMessage('Проходы колоды закончились!');
         }
     });
-    document.getElementById('new-game-btn').addEventListener('click', newGame);
+    // Кнопка "Новая игра" в панели — с подтверждением
+    document.getElementById('new-game-btn').addEventListener('click', function () {
+        showConfirmModal();
+    });
+
+    // Кнопка "Играть снова" на экране победы — без подтверждения (игра уже закончена)
     document.getElementById('again-btn').addEventListener('click', newGame);
 }
 
@@ -583,7 +759,7 @@ function findHint() {
 var hintTimer = null;
 
 function showHint() {
-    if (!HINTS_ALLOWED[difficulty]) return; // на «Невозможном» подсказок нет
+    if (!HINTS_ALLOWED[difficulty]) return;
     clearHint();
     var hint = findHint();
     if (!hint) { flashMessage('Доступных ходов нет'); return; }
@@ -638,7 +814,7 @@ function flashMessage(text) {
 }
 
 // =========================================================
-// ТАЙМЕР (режим «Невозможный»)
+// ТАЙМЕР
 // =========================================================
 function startTimer() {
     stopTimer();
@@ -675,7 +851,6 @@ document.querySelectorAll('.diff-btn').forEach(function (btn) {
         document.querySelectorAll('.diff-btn').forEach(function (b) { b.classList.remove('active'); });
         btn.classList.add('active');
         difficulty = btn.getAttribute('data-diff');
-        // Показываем плашку с правилами в правом углу меню
         fillRulesPlate('menu-rules-title', 'menu-rules-list', difficulty);
         document.getElementById('menu-rules-plate').style.display = 'block';
     });
@@ -688,25 +863,67 @@ document.getElementById('retry-btn').addEventListener('click', function () {
 document.getElementById('lose-menu-btn').addEventListener('click', backToMenu);
 
 // =========================================================
+// МАСШТАБИРОВАНИЕ (4 уровня)
+// =========================================================
+var zoomLevels = [0.75, 0.9, 1.0, 1.15];
+var currentZoom = 2;
+
+function applyZoom() {
+    var gameEl = document.getElementById('game');
+    var scale = zoomLevels[currentZoom];
+    gameEl.style.transform = 'scale(' + scale + ')';
+    gameEl.style.transformOrigin = 'top center';
+    document.getElementById('zoom-in').classList.toggle('active', currentZoom === 3);
+    document.getElementById('zoom-out').classList.toggle('active', currentZoom === 0);
+}
+
+document.getElementById('zoom-in').addEventListener('click', function () {
+    if (currentZoom < zoomLevels.length - 1) {
+        currentZoom++;
+        applyZoom();
+    }
+});
+
+document.getElementById('zoom-out').addEventListener('click', function () {
+    if (currentZoom > 0) {
+        currentZoom--;
+        applyZoom();
+    }
+});
+
+applyZoom();
+
+// =========================================================
+// МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ
+// =========================================================
+var confirmModal = document.getElementById('confirm-modal');
+
+function showConfirmModal() {
+    confirmModal.style.display = 'flex';
+}
+
+function hideConfirmModal() {
+    confirmModal.style.display = 'none';
+}
+
+document.getElementById('confirm-yes').addEventListener('click', function () {
+    hideConfirmModal();
+    newGame();
+});
+
+document.getElementById('confirm-no').addEventListener('click', function () {
+    hideConfirmModal();
+});
+
+// Закрытие по клику на фон
+confirmModal.addEventListener('click', function (e) {
+    if (e.target === confirmModal) {
+        hideConfirmModal();
+    }
+});
+
+// =========================================================
 // СТАРТ
 // =========================================================
 initListeners();
 document.getElementById('hint-btn').addEventListener('click', showHint);
-// =========================================================
-// МАСШТАБИРОВАНИЕ ИГРОВОГО ПОЛЯ ПОД ШИРИНУ ЭКРАНА
-// =========================================================
-function fitGameToScreen() {
-    var gameEl = document.getElementById('game');
-    if (!gameEl) return;
-    var naturalWidth = 760;            // ширина поля в дизайне (max-width)
-    var available = window.innerWidth - 16; // 8px отступов с каждой стороны
-    var scale = Math.min(1, available / naturalWidth); // не увеличиваем больше 1
-    gameEl.style.setProperty('--game-scale', scale);
-}
-
-// Пересчитываем при загрузке, повороте экрана и ресайзе
-window.addEventListener('resize', fitGameToScreen);
-window.addEventListener('orientationchange', function () {
-    setTimeout(fitGameToScreen, 150); // чуть ждём, пока экран повернётся
-});
-fitGameToScreen();
