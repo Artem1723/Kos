@@ -42,6 +42,9 @@
         <button class="menu-btn" id="play-btn">Играть</button>
         <button class="menu-btn menu-btn-secondary" id="settings-btn">Настройки</button>
         <button class="menu-btn menu-btn-secondary" id="howto-btn">Как играть</button>
+
+        <!-- Статистика побед -->
+        <div class="stats-plate" id="stats-plate"></div>
     </div>
 </div>
 
@@ -70,7 +73,7 @@
     <div class="modal-content">
         <h2>Как играть</h2>
         <div class="rules">
-            <p><b>Цель:</b> Собрать все карты в 4 базы (справа сверху) по мастям от туза до короля.</p>
+            <p><b>Цель:</b> Собрать все карты в 4 базы (справа сверху) по мастям от туза до короля. Каждая база принимает только свою масть.</p>
             <p><b>Правила:</b></p>
             <ul>
                 <li>На столбцы карты кладутся по убыванию, чередуя цвета (красная на чёрную и наоборот).</li>
@@ -79,6 +82,7 @@
                 <li>Клик по колоде слева открывает новые карты (1 или 3 — зависит от сложности).</li>
                 <li>Перетаскивайте карты зажатой кнопкой мыши.</li>
                 <li>Двойной клик по карте — авто-перемещение в доступный слот.</li>
+                <li>Кнопка «Отмена» возвращает последний ход (лимит зависит от сложности).</li>
             </ul>
         </div>
         <button class="menu-btn" id="close-howto">Понятно</button>
@@ -103,6 +107,11 @@
                 <input type="checkbox" id="setting-tap-move" checked>
                 <span class="toggle-slider"></span>
                 <span class="toggle-label">Перемещение одним нажатием</span>
+            </label>
+            <label class="settings-toggle">
+                <input type="checkbox" id="setting-theme">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Классическая тема</span>
             </label>
         </div>
 
@@ -158,7 +167,8 @@
         </div>
         <div class="ui-row">
             <button id="hint-btn" class="ui-btn">Подсказка</button>
-            <button id="game-settings-btn" class="ui-btn ui-btn-icon">Настройки</button>
+            <button id="undo-btn" class="ui-btn">Отмена: <b id="undo-left">0</b></button>
+            <button id="game-settings-btn" class="ui-btn">Настройки</button>
         </div>
         <div class="ui-row">
             <button id="new-game-btn" class="ui-btn ui-btn-wide">Новая игра</button>
@@ -192,6 +202,7 @@
 
     <div id="win">
         <h1>🎉 Победа!</h1>
+        <p class="win-stats" id="win-stats"></p>
         <button id="again-btn">Играть снова</button>
         <button id="win-menu-btn" class="menu-btn-secondary">В меню</button>
     </div>
